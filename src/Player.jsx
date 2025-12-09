@@ -16,7 +16,7 @@ export function Player(props) {
     
 
     // 选择一个自带的动画作为默认的“待机”动画
-    const defaultAnimationName = 'Walking'; 
+    const defaultAnimationName = 'House'; 
     
     // 在组件加载时播放默认动画
     useEffect(() => {
@@ -33,7 +33,7 @@ export function Player(props) {
             {/* 渲染加载好的玩家模型 */}
             <primitive 
                 object={scene.clone()} 
-                scale={0.2}             
+                scale={0.15}             
             />
         </group>
     );

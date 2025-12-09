@@ -8,7 +8,7 @@ import { portfolioData } from './data/portfolioData';
 import { PokemonCenter } from './PokemonCenter';
 import { Player } from './Player';
 
-// --- 新的 3D 组件：项目标记 ProjectMarker ---
+// --- 3D 组件：项目标记 ProjectMarker ---
 // 接收项目数据和 onSelect 回调函数作为 props
 const ProjectMarker = ({ data, onProjectSelect, ...props }) => {
   const meshRef = useRef();
