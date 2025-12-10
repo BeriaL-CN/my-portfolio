@@ -78,13 +78,16 @@ const ThreeDScene = ({ onProjectSelect }) => {
       <ambientLight intensity={0.5} />
       {/* 增加一个更亮的定向光，模拟太阳或室内照明 */}
       <directionalLight position={[10, 10, 5]} intensity={2} castShadow />
-
-      <OrbitControls
+      
+      //注释从而禁止用户自由控制相机，相机逻辑在 Player 组件中处理
+      {/* <OrbitControls
         enableDamping={true}
         dampingFactor={0.05}
         // 调整相机目标，确保模型在视野中央
         target={[0, 0, 0]}
-      />
+      /> */}
+
+
 
       {/* 1. 渲染宝可梦中心背景模型，并在加载完成时获取碰撞网格 */}
       <PokemonCenter 

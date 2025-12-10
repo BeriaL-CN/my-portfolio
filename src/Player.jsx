@@ -11,12 +11,21 @@ const PLAYER_MODEL_PATH = '/models/player_model.glb';
 
 export function Player({ collidableObjects = [],props}) {
     const groupRef = useRef(); 
+
+    // 相机和跟随逻辑的辅助对象
+    const cameraTarget = useRef(new THREE.Vector3());
+    const cameraPositionTarget = useRef(new THREE.Vector3()); // 目标相机位置
+    const cameraDistanceX = 0;  // 相机在X轴上的偏移（可选，用于斜角）
+    const cameraDistanceY = 6;  // 相机的高度 (俯视)
+    const cameraDistanceZ = 7;  // 相机在Z轴上的偏移
+    const cameraSmoothness = 0.05; // 相机跟随的平滑度
+
+
+    // 动画相关的引用
     const { scene, animations } = useGLTF(PLAYER_MODEL_PATH);
 
     // --- 核心：使用 useAnimations 钩子（包含 mixer） ---
     const { actions } = useAnimations(animations, groupRef);
-    
-
     // 选择一个自带的动画作为默认的"待机"动画
     const defaultAnimationName = 'House'; 
     const movementSpeed = 0.1;
@@ -71,9 +80,36 @@ export function Player({ collidableObjects = [],props}) {
         }
     }, [actions]); // 依赖项确保只在加载完成后运行
 
-    // ... 运动逻辑将添加到 useFrame 中 ...
-    // --- 核心：在每一帧中处理运动 ---
-    useFrame(() => {
+
+    useFrame((state) => {
+
+        //相机跟随逻辑
+        
+        const playerPosition = groupRef.current.position;
+        const playerRotation = groupRef.current.rotation;
+
+        // 1. 计算相机目标位置 (相机应该在的位置)
+        
+        // 目标位置 = 玩家位置 + 固定的偏移量
+        cameraPositionTarget.current.set(
+            playerPosition.x + cameraDistanceX, 
+            playerPosition.y + cameraDistanceY, 
+            playerPosition.z + cameraDistanceZ 
+        );
+
+        // 2. 计算相机看向的目标 (始终看向主角)
+        cameraTarget.current.copy(playerPosition);
+        cameraTarget.current.y += 0.5; // 让相机看向主角身体的中心
+        
+        // 3. 使用插值 (Lerp) 平滑移动相机
+        // 注意：我们直接操作 state.camera (R3F 自动提供的 Three.js 相机对象)
+        state.camera.position.lerp(cameraPositionTarget.current, cameraSmoothness);
+        // 始终让相机看向主角
+        state.camera.lookAt(cameraTarget.current);
+        // -----------------------------------------------------------------
+
+        // ... 运动逻辑 ...
+        // --- 核心：在每一帧中处理运动 ---
         if (!groupRef.current) return;
         
         // 保存上一帧位置（用于碰撞检测回退）
