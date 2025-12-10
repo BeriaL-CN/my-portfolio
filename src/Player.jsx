@@ -9,7 +9,7 @@ import * as THREE from 'three';
 
 const PLAYER_MODEL_PATH = '/models/player_model.glb'; 
 
-export function Player(props) {
+export function Player({ collidableObjects = [],props}) {
     const groupRef = useRef(); 
     const { scene, animations } = useGLTF(PLAYER_MODEL_PATH);
 
@@ -73,7 +73,7 @@ export function Player(props) {
 
     // ... 运动逻辑将添加到 useFrame 中 ...
     // --- 核心：在每一帧中处理运动 ---
-    useFrame(({ scene }) => {
+    useFrame(() => {
         if (!groupRef.current) return;
         
         // 保存上一帧位置（用于碰撞检测回退）
@@ -109,44 +109,53 @@ export function Player(props) {
             moved = true;
         }
         
-        // 碰撞检测：检查新位置是否与场景中的物体碰撞（使用射线投射实现精细检测）
+        // 碰撞检测：改为多射线采样
         const playerPos = new THREE.Vector3(nextX, nextY, nextZ);
         let hasCollision = false;
-        
-        // 从当前位置朝新位置投射射线以检测碰撞
-        const direction = playerPos.clone().sub(groupRef.current.position).normalize();
-        const distance = groupRef.current.position.distanceTo(playerPos);
-        
-        const raycaster = new THREE.Raycaster(groupRef.current.position, direction, 0, distance + collisionRadius);
-        const collidableObjects = [];
-        
-        // 收集所有可碰撞的物体
-        scene.traverse((object) => {
-            // 跳过玩家自己
-            if (object === groupRef.current || object.parent === groupRef.current) return;
-            
-            // 跳过标记为不碰撞的物体（如地板）
-            if (object.userData?.noCollide) return;
-            
-            // 只处理有几何体的物体
-            if (object.geometry) {
-                collidableObjects.push(object);
-            }
-        });
-        
-        // 进行射线投射检测
-        if (collidableObjects.length > 0) {
-            const intersects = raycaster.intersectObjects(collidableObjects, false);
-            if (intersects.length > 0) {
-                hasCollision = true;
+
+        // 使用传入的可碰撞对象数组，在threedscene.jsx中传入
+
+        // 方向与距离
+        const moveDir = playerPos.clone().sub(groupRef.current.position);
+        const distance = moveDir.length();
+        // 如果没有移动或者没有碰撞对象，跳过检测
+        if (distance > 1e-6 && collidableObjects.length > 0) {
+            const direction = moveDir.clone().normalize();
+
+            // 采样点：中心 + 左右偏移 + 前方偏移（提高对窄缝和边缘的检测）
+            const side = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
+            const forward = direction.clone();
+
+            const offsets = [
+                new THREE.Vector3(0, 0.4, 0), // 中心（髋部高度略高，以避免地面自身检测）
+                side.clone().multiplyScalar(0.25).add(new THREE.Vector3(0, 0.4, 0)), // 左侧
+                side.clone().multiplyScalar(-0.25).add(new THREE.Vector3(0, 0.4, 0)), // 右侧
+                forward.clone().multiplyScalar(0.15).add(new THREE.Vector3(0, 0.4, 0)), // 前方稍上
+                side.clone().multiplyScalar(0.15).add(forward.clone().multiplyScalar(0.15)).add(new THREE.Vector3(0, 0.4, 0)), // 右前
+            ];
+
+
+            // 对每个采样点投射射线，发现任一撞击就认为发生碰撞
+            for (let i = 0; i < offsets.length && !hasCollision; i++) {
+                const origin = groupRef.current.position.clone().add(offsets[i]);
+                const raycaster = new THREE.Raycaster(origin, direction, 0, distance + collisionRadius);
+                const intersects = raycaster.intersectObjects(collidableObjects, false);
+
+                if (intersects.length > 0) {
+                    // 忽略非常靠近 origin 的自相交（长度接近 0），并忽略标记为 noCollide 的结果
+                    const valid = intersects.find(ix => ix.distance > 1e-4 && !ix.object.userData?.noCollide);
+                    if (valid) {
+                        hasCollision = true;
+                        break;
+                    }
+                }
             }
         }
-        
+
         // 如果没有碰撞，更新位置；否则回到上一帧位置
         if (!hasCollision) {
             groupRef.current.position.set(nextX, nextY, nextZ);
         } else {
-            // 碰撞发生，保持上一帧位置
             groupRef.current.position.copy(previousPosition.current);
         }
         
@@ -170,7 +179,7 @@ export function Player(props) {
                 currentAction.current.timeScale = 1.5; // 调整此值：1.0 为正常，>1.0 为加快
             }
         } else if (!moved && wasMoving.current) {
-            playActionByName('House', 0.18);
+            playActionByName( defaultAnimationName, 0.18);
             // 待机动画保持正常速度
             if (currentAction.current) {
                 currentAction.current.timeScale = 1.0;
