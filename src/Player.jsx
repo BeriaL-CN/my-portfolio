@@ -7,7 +7,7 @@ import { useGLTF, useAnimations } from '@react-three/drei';
 import { useKeyboardControls } from './useKeyboardControls'; // 导入自定义的键盘控制钩子
 import * as THREE from 'three';
 
-const PLAYER_MODEL_PATH = '/models/player_model.glb'; 
+const PLAYER_MODEL_PATH = 'models/player_model.glb'; 
 
 export function Player({ collidableObjects = [],props}) {
     const groupRef = useRef(); 

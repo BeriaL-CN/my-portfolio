@@ -4,7 +4,7 @@ import { useGLTF } from '@react-three/drei';
 import { useEffect, useRef } from 'react';
 
 // 模型文件路径 (注意：从 public 文件夹直接以 / 开头引用)
-const MODEL_PATH = '/models/pokemon_center.glb';
+const MODEL_PATH = 'models/pokemon_center.glb';
 
 export function PokemonCenter({ onLoaded, ...props }) {
     // useGLTF 是 Drei 提供的钩子，用于异步加载 GLTF/GLB 模型
