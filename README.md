@@ -8,10 +8,22 @@
 
 A modern personal portfolio website built with **React** and **Vite**, featuring dual-view mode with **3D scene rendering** and **2D fallback view**.
 
+### Live Demo
+
+The site is deployed on GitHub Pages: https://berial-cn.github.io/my-portfolio/
+
+### Current Status
+
+This project is under active development.
+
 ### Core Features
 
 - 🎨 **Dual View Modes**: Seamless switching between immersive 3D view and traditional 2D list view
-- 🌐 **3D Rendering**: Real-time 3D scenes powered by Three.js
+- 🌐 **3D Rendering**: Real-time 3D scenes powered by Three.js (GLB models via `useGLTF`)
+- 🎮 **Third-Person Player**: Player avatar with smooth TPS camera follow, directional movement, and animation blending
+- ⌨️ **Input Controls**: Supports `W/A/S/D` and Arrow keys concurrently (custom `useKeyboardControls` hook)
+- 🦾 **Animations**: Managed with `useAnimations` (Three.js AnimationMixer) and cross-fade transitions; adjustable `timeScale` for playback speed
+- 🛡️ **Collision Detection**: Multi-ray sampling collision checks and `userData.noCollide` tagging to exclude floor/ground
 - ⚡ **High Performance**: Vite build tool with instant cold start and fast HMR
 - 📱 **Responsive Full-Screen**: Supports full viewport layout
 - 🔧 **Modern Tech Stack**: React 19 with TypeScript support
@@ -35,17 +47,20 @@ my-portfolio/
 ├── src/
 │   ├── App.jsx                 # Main app component (view switching, state management)
 │   ├── App.css                 # Application styles
-│   ├── ThreeDScene.jsx         # 3D scene component
+│   ├── ThreeDScene.jsx         # 3D scene assembly, loads environment and passes collidables
+│   ├── Player.jsx              # Player controller: movement, rotation, animations, camera follow
+│   ├── useKeyboardControls.jsx # Custom hook: tracks WASD + Arrow keys
+│   ├── PokemonCenter.jsx       # Scene/environment model loader, marks floor with userData.noCollide
 │   ├── ProjectDetailsPanel.jsx # Project details panel (optional)
 │   ├── main.jsx                # App entry point
 │   ├── index.css               # Global styles
-│   └── assets/                 # Static resources (images, SVG)
+│   └── assets/                 # Static resources (images, models, SVG)
 ├── public/                     # Public resources
-├── vite.config.js             # Vite configuration
-├── eslint.config.js           # ESLint configuration
-├── package.json               # Dependencies and scripts
-├── index.html                 # HTML entry
-└── README.md                  # Project documentation
+├── vite.config.js              # Vite configuration
+├── eslint.config.js            # ESLint configuration
+├── package.json                # Dependencies and scripts
+├── index.html                  # HTML entry
+└── README.md                   # Project documentation
 ```
 
 ### Quick Start
@@ -77,6 +92,35 @@ Visit `http://localhost:5173`
 ```bash
 npm run build
 ```
+
+### Deployment (GitHub Pages)
+
+Two common ways to publish this repository to GitHub Pages:
+
+- Method A — Use the `gh-pages` package (automated, deploys `dist/` to `gh-pages` branch):
+
+```bash
+npm install --save-dev gh-pages
+# add to package.json:
+"homepage": "https://berial-cn.github.io/my-portfolio",
+"scripts": {
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d dist"
+}
+# then deploy
+npm run deploy
+```
+
+- Method B — Use `main` branch `/docs` folder (manual):
+
+```bash
+npm run build
+# move build output to ./docs then push to main branch
+mv dist docs
+git add docs && git commit -m "chore: add docs for GitHub Pages" && git push
+```
+
+Replace the Live Demo URL above if you use a different GitHub Pages configuration.
 
 #### Preview Build
 
@@ -123,6 +167,10 @@ const [selectedProject, setSelectedProject] = useState(0);
     {/* Project list content */}
   </div>
 )}
+
+// Player movement (简化示例):
+// 支持 WASD + Arrow 键，平滑旋转，动画切换，碰撞检测由 ThreeDScene 提供 collidable 对象数组
+// Player.jsx 中使用 useAnimations 管理动画剪辑，并使用多射线采样检测碰撞（提高精度）
 ```
 
 ### Recent Fixes
@@ -130,6 +178,39 @@ const [selectedProject, setSelectedProject] = useState(0);
 1. **JSX Syntax Errors**: Fixed spacing in tag names and mismatched closing tags
 2. **State Management**: Corrected initialization and setter function calls
 3. **JSX Comments**: Using proper comment syntax `{/* comment */}`
+
+### 演示地址
+
+已部署到 GitHub Pages： https://berial-cn.github.io/my-portfolio/
+
+### 部署（GitHub Pages）
+
+两种常见的发布方式：
+
+- 方法一 — 使用 `gh-pages`（自动化，部署 `dist/` 到 `gh-pages` 分支）：
+
+```bash
+npm install --save-dev gh-pages
+# 在 package.json 中添加：
+"homepage": "https://berial-cn.github.io/my-portfolio",
+"scripts": {
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d dist"
+}
+# 然后执行：
+npm run deploy
+```
+
+- 方法二 — 使用 `main` 分支的 `/docs` 目录（手动）：
+
+```bash
+npm run build
+# 将构建输出移动到 ./docs 并推送到 main 分支
+mv dist docs
+git add docs && git commit -m "chore: add docs for GitHub Pages" && git push
+```
+
+如果你的 GitHub Pages 配置不同，请替换上面的演示地址为实际 URL。
 
 ### Suggestions for Enhancement
 
@@ -161,10 +242,18 @@ MIT License
 ### 核心特性
 
 - 🎨 **双视图模式**：3D 沉浸式视图和 2D 列表视图无缝切换
-- 🌐 **3D 渲染**：基于 Three.js 的实时 3D 场景
+- 🌐 **3D 渲染**：基于 Three.js 的实时 3D 场景（通过 `useGLTF` 加载 GLB 模型）
+- 🎮 **第三人称玩家**：玩家角色、平滑 TPS 相机跟随、方向移动与动画混合
+- ⌨️ **输入支持**：同时支持 `W/A/S/D` 和方向键（由自定义 `useKeyboardControls` 管理）
+- 🦾 **动画管理**：使用 `useAnimations`（AnimationMixer）进行动画过渡、cross-fade 与 `timeScale` 控制
+- 🛡️ **碰撞检测**：多射线采样 + `userData.noCollide` 标记以排除地面，实现更精细的碰撞检测
 - ⚡ **高性能**：Vite 构建工具，极速冷启动和热更新
 - 📱 **全屏响应式**：支持全视口布局
 - 🔧 **现代开发栈**：React 19 + TypeScript 支持
+
+### 当前状态
+
+本项目处于持续开发中。
 
 ---
 
