@@ -86,7 +86,6 @@ export function Player({ collidableObjects = [],props}) {
         //相机跟随逻辑
         
         const playerPosition = groupRef.current.position;
-        const playerRotation = groupRef.current.rotation;
 
         // 1. 计算相机目标位置 (相机应该在的位置)
         

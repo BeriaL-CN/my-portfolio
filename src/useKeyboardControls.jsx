@@ -17,16 +17,22 @@ export function useKeyboardControls() {
     useEffect(() => {
         // 键盘按下事件
         const handleKeyDown = (e) => {
-            if (Object.prototype.hasOwnProperty.call(keys, e.code)) {
-                setKeys((prev) => ({ ...prev, [e.code]: true }));
-            }
+            setKeys((prev) => {
+                if (Object.prototype.hasOwnProperty.call(prev, e.code)) {
+                    return { ...prev, [e.code]: true };
+                }
+                return prev;
+            });
         };
 
         // 键盘抬起事件
         const handleKeyUp = (e) => {
-            if (Object.prototype.hasOwnProperty.call(keys, e.code)) {
-                setKeys((prev) => ({ ...prev, [e.code]: false }));
-            }
+            setKeys((prev) => {
+                if (Object.prototype.hasOwnProperty.call(prev, e.code)) {
+                    return { ...prev, [e.code]: false };
+                }
+                return prev;
+            });
         };
 
         // 绑定事件监听器
