@@ -47,20 +47,20 @@ const ProjectDetailsPanel = ({ project, onClose }) => {
             
             <hr style={{ border: '0', borderTop: '1px solid #eee' }}/>
 
-            <p><strong>技术栈：</strong> {project.tags.join(', ')}</p>
+            <p><strong>Languages: </strong> {project.tags.join(', ')}</p>
 
             <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
                 {project.links.liveDemo && (
                     <a href={project.links.liveDemo} target="_blank" rel="noopener noreferrer">
                         <button style={{ backgroundColor: '#ff69b4', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer' }}>
-                            查看 Live Demo
+                            Live Demo
                         </button>
                     </a>
                 )}
                 {project.links.github && (
                     <a href={project.links.github} target="_blank" rel="noopener noreferrer">
                         <button style={{ backgroundColor: '#4e79a7', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer' }}>
-                            GitHub 源码
+                            GitHub Link
                         </button>
                     </a>
                 )}

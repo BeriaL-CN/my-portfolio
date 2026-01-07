@@ -14,6 +14,7 @@ import { Player } from './Player';
 const ProjectMarker = ({ data, onProjectSelect, ...props }) => {
   const meshRef = useRef();
   const [hovered, hover] = React.useState(false); // 悬停状态
+  const [isNear, setIsNear] = useState(false); // 玩家接近状态
   // 注册为碰撞对象
   const { onRegister } = props;
 
@@ -28,26 +29,47 @@ const ProjectMarker = ({ data, onProjectSelect, ...props }) => {
     if (meshRef.current) {
       // 让标记稍微旋转，表明它是交互式的
       meshRef.current.rotation.y += 0.5 * delta;
+      // 距离检测：获取玩家位置
+      const player = state.scene.getObjectByName('Player');
+      if (player) {
+        const distance = meshRef.current.position.distanceTo(player.position);
+        if (distance < 0.5) {
+          setIsNear(true)
+          hover(true);
+        }
+      }
     }
   });
 
   return (
-    <mesh
-      {...props}
-      ref={meshRef}
-      // 根据悬停状态改变缩放和颜色，提供视觉反馈
-      scale={hovered ? 1.8 : 1.5}
-      onClick={() => onProjectSelect(data)} // 点击时，将项目数据传递给 App.jsx
-      onPointerOver={(event) => hover(true)} // 鼠标悬停
-      onPointerOut={(event) => hover(false)} // 鼠标离开
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      {/* 颜色可以根据项目 ID 或标签动态设置 */}
-      <meshStandardMaterial color={hovered ? '#ff0000' : '#4e79a7'} />
-      {/* 未来这里会是加载的模型而不是立方体 */}
-    </mesh>
+    <group position={props.position}>
+      {/* 浮动文字提示 */}
+      {isNear && (
+        <Html distanceFactor={10} position={[0, 0.5, 0]}>
+          <div className="tooltip">press blankspace to see {data.name}</div>
+        </Html>
+      )}
+
+      {/* 标记本体 */}
+      <mesh
+        {...props}
+        ref={meshRef}
+        // 根据悬停状态改变缩放和颜色，提供视觉反馈
+        scale={hovered ? 1.2 : 0.9}
+        onClick={() => onProjectSelect(data)} // 点击时，将项目数据传递给 App.jsx
+        onPointerOver={() => hover(true)} // 鼠标悬停
+        onPointerOut={() => hover(false)} // 鼠标离开
+      >
+        <icosahedronGeometry args={[0.3, 1]} />
+        {/* 颜色可以根据项目 ID 或标签动态设置 */}
+        <meshStandardMaterial color={hovered ? '#ff0000' : '#4e79a7'} />
+        {/* 占位：使用更高面数的二十面体 (Icosahedron)；调整 args[0]=半径, args[1]=细分级别 */}
+      </mesh>
+    </group>
   );
 };
+
+
 const ThreeDScene = ({ onProjectSelect }) => {
   // 用于缓存可碰撞网格的状态（Hooks 必须在组件内部声明）
   const [collidableMeshes, setCollidableMeshes] = useState([]);
@@ -78,7 +100,7 @@ const ThreeDScene = ({ onProjectSelect }) => {
       <ambientLight intensity={0.5} />
       {/* 增加一个更亮的定向光，模拟太阳或室内照明 */}
       <directionalLight position={[10, 10, 5]} intensity={2} castShadow />
-      
+
       //注释从而禁止用户自由控制相机，相机逻辑在 Player 组件中处理
       {/* <OrbitControls
         enableDamping={true}
@@ -90,9 +112,9 @@ const ThreeDScene = ({ onProjectSelect }) => {
 
 
       {/* 1. 渲染宝可梦中心背景模型，并在加载完成时获取碰撞网格 */}
-      <PokemonCenter 
-                onLoaded={handleModelLoaded} // 传递处理模型网格的函数
-            />
+      <PokemonCenter
+        onLoaded={handleModelLoaded} // 传递处理模型网格的函数
+      />
 
       {/* 2. 渲染玩家模型 */}
       <Player
